@@ -1,0 +1,31 @@
+Subject: Only use -fstack-protector-all if it is supported
+
+This flag isn't available on all Debian ports.
+
+Origin: vendor
+From: Colin Watson <cjwatson@debian.org>
+Reviewed-by: nicoo <nicoo@debian.org>
+Forwarded: https://github.com/Yubico/libfido2/pull/130
+Applied-Upstream: not-yet
+Last-Update: 2020-02-23
+
+---
+ CMakeLists.txt | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index c7c5991..07ca5e1 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -114,7 +114,10 @@ else()
+ 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wbad-function-cast")
+ 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pedantic")
+ 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pedantic-errors")
+-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fstack-protector-all")
++	check_c_compiler_flag("-fstack-protector-all" HAVE_STACK_PROTECTOR_ALL)
++	if(HAVE_STACK_PROTECTOR_ALL)
++		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fstack-protector-all")
++	endif()
+ 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
+ 
+ 	set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g2")

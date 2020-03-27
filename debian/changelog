@@ -1,80 +1,41 @@
-libfido2 (1.2.0~ppa1~bionic1) bionic; urgency=low
+libfido2 (1.3.1-1ubuntu2) focal; urgency=medium
 
-  * Credential management support.
-  * New API reflecting FIDO's 3-state booleans (true, false, absent):
-    - fido_assert_set_up;
-    - fido_assert_set_uv;
-    - fido_cred_set_rk;
-    - fido_cred_set_uv.
-  * Command-line tools for Windows.
-  * Documentation and reliability fixes.
-  * fido_{assert,cred}_set_options() are now marked as deprecated.
+  * No change rebuild with libcbor 0.6.0
 
- -- pedro martelletto <pedro@yubico.com>  Fri, 23 Aug 2019 12:08:02 +0000
+ -- Andreas Hasenack <andreas@canonical.com>  Fri, 27 Mar 2020 09:31:14 -0300
 
-libfido2 (1.1.0) bionic; urgency=low
+libfido2 (1.3.1-1ubuntu1) focal; urgency=medium
 
-  * MacOS: fix IOKit crash on HID read.
-  * Windows: fix contents of release file.
-  * EdDSA (Ed25519) support.
-  * fido_dev_make_cred: fix order of CBOR map keys.
-  * fido_dev_get_assert: plug memory leak when operating on U2F devices.
+  * d/rules: run regression tests at build time, and one more time
+    with an injected failure to verify it's caught.
 
- -- pedro martelletto <pedro@yubico.com>  Tue, 07 May 2019 08:03:21 +0000
+ -- Andreas Hasenack <andreas@canonical.com>  Tue, 24 Mar 2020 16:29:13 -0300
 
-libfido2 (1.0.0) bionic; urgency=low
+libfido2 (1.3.1-1build1) focal; urgency=medium
 
-  * Native HID support on Linux, MacOS, and Windows.
-  * fido2-{assert,cred}: new -u option to force U2F on dual authenticators.
-  * fido2-assert: support for multiple resident keys with the same RP.
-  * Strict checks for CTAP2 compliance on received CBOR payloads.
-  * Better fuzzing harnesses.
-  * Documentation and reliability fixes.
+  * No-change rebuild to pick up i386
 
- -- pedro martelletto <pedro@yubico.com>  Tue, 19 Mar 2019 07:38:36 +0000
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Wed, 26 Feb 2020 14:55:17 -0800
 
-libfido2 (0.4.0) bionic; urgency=low
+libfido2 (1.3.1-1) unstable; urgency=medium
 
-  * fido2-assert: print the user id for resident credentials.
-  * Fix encoding of COSE algorithms when making a credential.
-  * Rework purpose of fido_cred_set_type; no ABI change.
-  * Minor documentation and code fixes.
+  [ nicoo ]
+  * New upstream version 1.3.1 (released 2020-02-19)
+    Correctly zero part of the APDU when communicating with U2F devices
 
- -- pedro martelletto <pedro@yubico.com>  Mon, 07 Jan 2019 08:22:01 +0000
+  * Fix non-determinism in the build
+    Set CMAKE_BUILD_RPATH_USE_ORIGIN, require cmake >= 3.14
+  * Add CI, based on salsa-ci-team's pipeline
 
-libfido2 (0.3.0) bionic; urgency=low
+  [ Colin Watson ]
+  * Fix pattern in debian/watch.
+  * Only use -fstack-protector-all if it is supported
 
-  * Various reliability fixes.
-  * Merged fuzzing instrumentation.
-  * Added regress tests.
-  * Added support for FIDO 2's hmac-secret extension.
-  * New API calls:
-    - fido_assert_hmac_secret_len;
-    - fido_assert_hmac_secret_ptr;
-    - fido_assert_set_extensions;
-    - fido_assert_set_hmac_salt;
-    - fido_cred_set_extensions;
-    - fido_dev_force_fido2.
-  * Support for native builds with Microsoft Visual Studio 17.
+ -- nicoo <nicoo@debian.org>  Sun, 23 Feb 2020 15:36:41 +0100
 
- -- pedro martelletto <pedro@yubico.com>  Tue, 11 Sep 2018 09:05:32 +0000
+libfido2 (1.3.0-1) unstable; urgency=low
 
-libfido2 (0.2.0) bionic; urgency=low
+  * Initial packaging (released 2019-11-28)
+    Closes: #951184
 
-  * Added command-line tools.
-  * Added a couple of missing get functions.
-
- -- pedro martelletto <pedro@yubico.com>  Mon, 18 Jun 2018 10:44:11 +0000
-
-libfido2 (0.1.1~dev) bionic; urgency=low
-
-  * Added documentation.
-  * Minor fixes.
-
- -- pedro martelletto <pedro@yubico.com>  Wed, 30 May 2018 13:16:28 +0000
-
-libfido2 (0.1.0~dev) bionic; urgency=low
-
-  * Initial release.
-
- -- pedro martelletto <pedro@yubico.com>  Fri, 18 May 2018 08:47:01 +0000
+ -- nicoo <nicoo@debian.org>  Wed, 12 Feb 2020 15:40:00 +0100

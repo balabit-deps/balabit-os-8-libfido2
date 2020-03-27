@@ -1,9 +1,35 @@
 #!/usr/bin/make -f
 
-DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 
 %:
 	dh $@
 
 override_dh_auto_configure:
-	dh_auto_configure -- -DUDEV_RULES_DIR=/lib/udev/rules.d
+	dh_auto_configure -- -DUDEV_RULES_DIR=/lib/udev/rules.d \
+	                     -DCMAKE_BUILD_RPATH_USE_ORIGIN=ON
+
+override_dh_missing:
+	dh_missing --fail-missing
+
+override_dh_auto_test:
+	# regress/ tests are only included when the build type is set to Debug, so
+	# we build it again in a separate directory as we don't want a Debug build
+	# in the shipped packages
+	mkdir good-case
+	echo "Running regression tests"
+	cd good-case; cmake -DCMAKE_BUILD_TYPE=Debug ..; make
+	echo "SUCCESS: regression tests passed"
+	# the way the tests are run, by just calling the built binary in a
+	# post-build hook, makes them super silent. The fact that a binary is even
+	# being called after the build is not shown. To be sure we really ran the
+	# tests, let's do it one more time but with an injected failure
+	echo "Injecting a failure and running regression tests again"
+	sed -r -i 's,exit\(0\);,assert(1 == 0); exit(0); /* force failure */,' regress/cred.c
+	# if the next grep fails, then the sed above didn't make any changes, and
+	# we should bail as the "force failure" case isn't valid anymore
+	grep "force failure" -q regress/cred.c
+	mkdir bad-case
+	cd bad-case; cmake -DCMAKE_BUILD_TYPE=Debug ..; \
+		make && { echo "ERROR: Expected regression test failure did not happen"; exit 1; } \
+		|| echo "SUCCESS: the expected failure happened"
