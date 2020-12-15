@@ -1,0 +1,80 @@
+#!/bin/bash -e
+# Copyright (c) 2019 Yubico AB. All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
+#
+# XXX This should really be a Makefile.
+
+T=""
+#T+=" harnesses/assert"
+#T+=" harnesses/assert-rsa-h-p"
+#T+=" harnesses/assert-u2f"
+#T+=" harnesses/cred"
+#T+=" harnesses/cred-rsa-h-p"
+#T+=" harnesses/cred-u2f"
+#T+=" harnesses/cred-u2f-exclude"
+#T+=" harnesses/fido2-assert-G"
+#T+=" harnesses/fido2-assert-V"
+#T+=" harnesses/fido2-cred-M"
+#T+=" harnesses/fido2-cred-V"
+T+=" harnesses/fuzz_assert"
+T+=" harnesses/fuzz_bio"
+T+=" harnesses/fuzz_cred"
+T+=" harnesses/fuzz_credman"
+T+=" harnesses/fuzz_mgmt"
+
+clean() {
+	echo cleaning
+	rm -rf obj
+	mkdir obj
+}
+
+build() {
+	echo building
+	mkdir obj/build
+	(cd obj/build && cmake -DFUZZ=1 -DLIBFUZZER=1 -DCMAKE_C_COMPILER=clang \
+		-DCOVERAGE=1 -DCMAKE_BUILD_TYPE=Debug ../../..) 2>/dev/null 1>&2
+	make -C obj/build 2>/dev/null 1>&2
+	cc -fPIC -D_GNU_SOURCE -shared -o obj/preload-fuzz.so preload-fuzz.c
+}
+
+sync() {
+	if [ -n "${REMOTE}" ]; then
+		for t in ${T}; do
+			echo syncing ${t}
+			(cd obj && REMOTE="${REMOTE}" ../${t} sync)
+		done
+	else
+		tar -C obj -zxf corpus.tgz
+	fi
+}
+
+run() {
+	export LLVM_PROFILE_FILE="profraw/%h-%p.profraw"
+	export PRELOAD=$(realpath obj/preload-fuzz.so)
+
+	for t in ${T}; do
+		echo running ${t}
+		(cd obj && ../${t} run)
+	done
+}
+
+merge() {
+	echo merging
+	(cd obj && \
+		llvm-profdata merge -sparse profraw/*.profraw \
+			-o libfido2.profdata &&
+		llvm-cov show -format=html -tab-size=8 build/src/libfido2.so \
+			-instr-profile=libfido2.profdata > report.html &&
+		llvm-cov report -use-color=false build/src/libfido2.so \
+			-instr-profile=libfido2.profdata > summary.txt &&
+		llvm-cov report -use-color=false -show-functions \
+			-instr-profile=libfido2.profdata build/src/libfido2.so \
+			../../src/*.[ch] > functions.txt)
+}
+
+clean
+build
+sync
+run
+merge
